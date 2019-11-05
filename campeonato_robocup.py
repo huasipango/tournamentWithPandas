@@ -17,11 +17,12 @@ class Jugador:
         return {'nombre':self.nombre,'apellido':self.apellido,'id':self.id,'nivel':self.nivel,'equipo':self.equipo}
 class Equipo:
     jugadores = []
-    def __init__(self, nombre, telefono, partidos_jugados=None, partidos_empatados=None, partidos_perdidos=None, 
-                puntos_totales=None, goles_marcados=None, goles_recibidos=None, gol_diferencia=None, id_capitan=None):
+    def __init__(self, nombre, telefono, partidos_jugados=0, partidos_ganados=0, partidos_empatados=0, partidos_perdidos=0, 
+                puntos_totales=0, goles_marcados=0, goles_recibidos=0, gol_diferencia=0, id_capitan=None):
         self.nombre=nombre
         self.telefono=telefono
         self.partidos_jugados=partidos_jugados
+        self.partidos_ganados=partidos_ganados
         self.partidos_empatados=partidos_empatados
         self.partidos_perdidos=partidos_perdidos
         self.puntos_totales=puntos_totales
@@ -30,7 +31,7 @@ class Equipo:
         self.gol_diferencia=gol_diferencia
         self.id_capitan=id_capitan
     def like_a_frame(self):
-        return {'nombre': self.nombre,'telefono': self.telefono,'partidos_jugados':self.partidos_jugados,
+        return {'nombre': self.nombre,'telefono': self.telefono,'partidos_jugados':self.partidos_jugados,'partidos_ganados':self.partidos_ganados,
         'partidos_empatados':self.partidos_empatados,'partidos_perdidos':self.partidos_perdidos,'puntos_totales':self.puntos_totales,
         'goles_marcados':self.goles_marcados,'goles_recibidos':self.goles_recibidos,'gol_diferencia':self.gol_diferencia,'id_capitan':self.id_capitan}
 
@@ -40,7 +41,7 @@ class Campeonato:
     lista_jugadores = []
     grupo_a=object
     grupo_b=object
-    cronograma=object
+    cronograma=pandas.DataFrame()
 
     def __init__(self):
         pass
@@ -58,7 +59,7 @@ class Campeonato:
             return "2"
 
     def guardar_equipo_csv(self, equipo):
-        columns=["nombre","telefono","partidos_jugados","partidos_empatados","partidos_perdidos","puntos_totales","goles_marcados","goles_recibidos","gol_diferencia","id_capitan"]
+        columns=["nombre","telefono","partidos_jugados","partidos_ganados","partidos_empatados","partidos_perdidos","puntos_totales","goles_marcados","goles_recibidos","gol_diferencia","id_capitan"]
         tabla=pandas.DataFrame([equipo.like_a_frame()], columns=columns)
         with open("csv/equipos.csv", "a") as file:
             tabla.to_csv(file, header=file.tell()==0, index=False)
@@ -96,13 +97,22 @@ class Campeonato:
                                 opc2=self.comprobar_faltan_equipos()
                                 if(opc2=="2"):#EXISTEN 6 EQUIPOS
                                     self.imprimir_carnes()
-                                    opc2=0
+                                    opc2="0"
                             elif opc2=="3":
                                 opc2=self.comprobar_faltan_equipos()
-                                self.crear_cronograma()
+                                if self.cronograma.empty==True:
+                                    self.crear_cronograma()
+                                print(self.cronograma.to_string(index=False))
+                                opc2="0"
                             elif opc2=="4":
                                 opc2=self.comprobar_faltan_equipos()
+                                if self.cronograma.empty==True:
+                                    print("¡ERROR! Aún no ha creado el cronograma. Intente con la opción 3 e intente de nuevo.")
+                                else:
+                                    self.ingresar_resultados()
+                                opc2="0"
                             elif opc2=="5":
+
                                 opc2=self.comprobar_faltan_equipos()
                             else:
                                 print("INGRESO INCORRECTO")
@@ -140,14 +150,14 @@ class Campeonato:
         print("")
         opc1="a"
         equipo=object
-        while opc1!="s" or opc1!="n":
-            opc1=str(input("¿Está de acuerdo?(s/n)"))
-            if opc1 == "s":
+        while opc1!="S" or opc1!="N":
+            opc1=str(input("¿Está de acuerdo?(S/N)"))
+            if opc1 == "S":
                 equipo=Equipo(equ_nombre, equ_telefono)
                 self.guardar_equipo_csv(equipo)
                 self.ingresar_jugadores(equipo)
                 break
-            elif opc1=="n":
+            elif opc1=="N":
                 break
             else:
                 print("¡ERROR EN EL INGRESO!")        
@@ -203,13 +213,13 @@ class Campeonato:
             print("")
             opc2="a"
             jugador=object
-            while opc2!="s" or opc2!="n":
-                opc2=str(input("¿Está de acuerdo?(s/n)"))
-                if opc2 == "s":
+            while opc2!="S" or opc2!="N":
+                opc2=str(input("¿Está de acuerdo?(S/N)"))
+                if opc2 == "S":
                     jugador=Jugador(jug_nombre, jug_apellido, jug_id, jug_nivel, equipo.nombre)
                     self.guardar_jugador_csv(jugador)
                     break
-                elif opc2=="n":
+                elif opc2=="N":
                     pass
                 else:
                     print("¡ERROR EN EL INGRESO!")       
@@ -243,33 +253,89 @@ class Campeonato:
             f.write(impresion)
             f.close()
     def crear_cronograma(self):
-        #CREAR GRUPOS
         lista=self.lista_equipos
         random.shuffle(lista)
-        grupo_a=self.lista_equipos[:3]
-        self.grupo_a=grupo_a
-        grupo_b=self.lista_equipos[3:]
-        self.grupo_b=grupo_b
+        self.grupo_a=lista[:3]
+        self.grupo_b=lista[3:]
         print("")
         print("GRUPO A:")
-        for equipo_a in grupo_a:
+        for equipo_a in self.grupo_a:
             print(equipo_a.nombre)
         print("GRUPO B:")
-        for equipo_b in grupo_b:
+        for equipo_b in self.grupo_b:
             print(equipo_b.nombre)
+        grupo_a=self.grupo_a
+        grupo_b=self.grupo_b
         #CREAR CRONOGRAMA
-        emparejamientos_a=[[grupo_a[0].nombre,grupo_a[1].nombre],[grupo_a[0].nombre,grupo_a[2].nombre],grupo_a[1].nombre,grupo_a[2].nombre]
-        emparejamientos_b=[[grupo_b[0].nombre,grupo_b[1].nombre],[grupo_b[0].nombre,grupo_b[2].nombre],grupo_b[1].nombre,grupo_b[2].nombre]
+        emparejamientos_a=[[grupo_a[0].nombre,grupo_a[1].nombre], [grupo_a[0].nombre,grupo_a[2].nombre], [grupo_a[1].nombre,grupo_a[2].nombre]]
+        emparejamientos_b=[[grupo_b[0].nombre,grupo_b[1].nombre], [grupo_b[0].nombre,grupo_b[2].nombre], [grupo_b[1].nombre,grupo_b[2].nombre]]
         campeonato=[]
         fecha_inicio="7/11/19"
         fecha=datetime.strptime(fecha_inicio, "%d/%m/%y")
         for i in range(3):
-            campeonato.append(["A",emparejamientos_a[i],fecha])
-            campeonato.append(["B",emparejamientos_b[i],fecha])
+            campeonato.append([i+1, "A", emparejamientos_a[i][0], emparejamientos_a[i][1], fecha.strftime("%d/%m/%Y")])
+            campeonato.append([i+1, "B", emparejamientos_b[i][0], emparejamientos_b[i][1], fecha.strftime("%d/%m/%Y")])
             fecha=fecha+timedelta(days=7)
-        df=pandas.DataFrame(campeonato, columns=["Grupo","Partido","Día"])
-        df
-
-
+        df=pandas.DataFrame(campeonato, columns=["Fecha","Grupo","Equipo 1","Equipo 2","Día"])
+        df.style.hide_index()
+        self.cronograma=df
+    def ingresar_resultados(self):
+        print("INGRESO DE RESULTADOS")
+        for indice_fila, fila in self.cronograma.iterrows():
+            print("Grupo " + fila['Grupo'])
+            print(fila['Equipo 1'] + " vs " + fila['Equipo 2'])
+            val=True
+            while val:
+                goles_a=input("Goles de " + fila['Equipo 1'] + ":")
+                if goles_a.isdigit():
+                    goles_b=input("Goles de " + fila['Equipo 2'] + ":")
+                    if goles_b.isdigit():
+                        val=False
+                    else:
+                        print("INGRESO INCORRECTO")
+                        val=True
+                else:
+                    print("INGRESO INCORRECTO")
+                    val=True
+            for i in range(len(self.lista_equipos)):
+                if fila['Equipo 1'] == self.lista_equipos[i].nombre: #EQUIPO 1
+                    if goles_a>goles_b: #GANA
+                        self.lista_equipos[i].partidos_ganados+=1
+                        self.lista_equipos[i].puntos_totales+=3
+                    elif goles_a<goles_b: #PIERDE
+                        self.lista_equipos[i].partidos_perdidos+=1
+                    else: #EMPATA
+                        self.lista_equipos[i].partidos_empatados+=1
+                        self.lista_equipos[i].puntos_totales+=1
+                    self.lista_equipos[i].partidos_jugados+=1
+                    self.lista_equipos[i].goles_marcados+=int(goles_a)
+                    self.lista_equipos[i].goles_recibidos+=int(goles_a)
+                    self.lista_equipos[i].gol_diferencia+=int(goles_a)
+                    self.lista_equipos[i].gol_diferencia-=int(goles_b)
+                if fila['Equipo 2'] == self.lista_equipos[i].nombre: #EQUIPO PERDEDOR
+                    if goles_a>goles_b: #PIERDE
+                        self.lista_equipos[i].partidos_perdidos+=1
+                    elif goles_a<goles_b: #GANA
+                        self.lista_equipos[i].partidos_ganados+=1
+                        self.lista_equipos[i].puntos_totales+=3
+                    else: #EMPATA
+                        self.lista_equipos[i].partidos_empatados+=1
+                        self.lista_equipos[i].puntos_totales+=1
+                    self.lista_equipos[i].partidos_jugados+=1
+                    self.lista_equipos[i].goles_marcados+=int(goles_b)
+                    self.lista_equipos[i].goles_recibidos+=int(goles_a)
+                    self.lista_equipos[i].gol_diferencia+=int(goles_b)
+                    self.lista_equipos[i].gol_diferencia-=int(goles_a)
+        self.actualizar_equipo_csv()
+    def actualizar_equipo_csv(self):
+        os.remove("csv/equipos.csv")
+        for equipo in self.lista_equipos:
+            columns=["nombre","telefono","partidos_jugados","partidos_ganados","partidos_empatados","partidos_perdidos","puntos_totales","goles_marcados","goles_recibidos","gol_diferencia","id_capitan"]
+            tabla=pandas.DataFrame([equipo.like_a_frame()], columns=columns)
+            with open("csv/equipos.csv", "a") as file:
+                tabla.to_csv(file, header=file.tell()==0, index=False)
+    def imprimir_tabla(self):
+        df=pandas.read_csv("csv/equipos.csv")
+        df.sort_values(by=[Grupo])
 torneo = Campeonato()
 torneo.inicio()       
