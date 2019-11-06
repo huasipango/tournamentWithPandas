@@ -16,7 +16,7 @@ class Jugador:
 class Equipo:
     jugadores = []
     def __init__(self, nombre, telefono, partidos_jugados=0, partidos_ganados=0, partidos_empatados=0, partidos_perdidos=0, 
-                puntos_totales=0, goles_marcados=0, goles_recibidos=0, gol_diferencia=0, id_capitan=None):
+                puntos_totales=0, goles_marcados=0, goles_recibidos=0, gol_diferencia=0, capitan=None):
         self.nombre=nombre
         self.telefono=telefono
         self.partidos_jugados=partidos_jugados
@@ -27,11 +27,11 @@ class Equipo:
         self.goles_marcados=goles_marcados
         self.goles_recibidos=goles_recibidos
         self.gol_diferencia=gol_diferencia
-        self.id_capitan=id_capitan
+        self.capitan=capitan
     def like_a_frame(self):
         return {'nombre': self.nombre,'telefono': self.telefono,'partidos_jugados':self.partidos_jugados,'partidos_ganados':self.partidos_ganados,
         'partidos_empatados':self.partidos_empatados,'partidos_perdidos':self.partidos_perdidos,'puntos_totales':self.puntos_totales,
-        'goles_marcados':self.goles_marcados,'goles_recibidos':self.goles_recibidos,'gol_diferencia':self.gol_diferencia,'id_capitan':self.id_capitan}
+        'goles_marcados':self.goles_marcados,'goles_recibidos':self.goles_recibidos,'gol_diferencia':self.gol_diferencia,'capitan':self.capitan}
 
 class Campeonato:
     
@@ -44,30 +44,6 @@ class Campeonato:
 
     def __init__(self):
         pass
-
-    def comprobar_faltan_equipos(self):
-        if len(self.lista_equipos) < 6: #CAMBIAR============================================================
-            print("¡ERROR! Deben existir seis equipos.")
-            print("Elementos actuales: " + str(len(self.lista_equipos)))
-            return True
-        else:
-            return False
-    def guardar_equipo_csv(self, equipo):
-        columns=["nombre","telefono","partidos_jugados","partidos_ganados","partidos_empatados","partidos_perdidos","puntos_totales","goles_marcados","goles_recibidos","gol_diferencia","id_capitan"]
-        tabla=pandas.DataFrame([equipo.like_a_frame()], columns=columns)
-        with open("csv/equipos.csv", "a") as file:
-            tabla.to_csv(file, header=file.tell()==0, index=False)
-        self.lista_equipos.append(equipo)
-    def guardar_puntajes_grupo_a_csv(self, puntajes):
-        if os.path.exists("csv/puntajes-grupo-a.csv"):
-            os.remove("csv/puntajes-grupo-a.csv")    
-        with open("csv/puntajes-grupo-a.csv", "a") as file:
-            puntajes.to_csv(file, header=file.tell()==0, index=False)
-    def guardar_puntajes_grupo_b_csv(self, puntajes):
-        if os.path.exists("csv/puntajes-grupo-b.csv"):
-            os.remove("csv/puntajes-grupo-b.csv")    
-        with open("csv/puntajes-grupo-b.csv", "a") as file:
-            puntajes.to_csv(file, header=file.tell()==0, index=False)
     def inicio(self):
         opc1="0"
         while opc1 not in ["1","2","3","4"]:
@@ -152,6 +128,29 @@ class Campeonato:
                     opc1="0"
             else:
                 print("¡ERROR EN EL INGRESO!")
+    def comprobar_faltan_equipos(self):
+        if len(self.lista_equipos) < 6: #CAMBIAR============================================================
+            print("¡ERROR! Deben existir seis equipos.")
+            print("Elementos actuales: " + str(len(self.lista_equipos)))
+            return True
+        else:
+            return False
+    def guardar_equipo_csv(self, equipo):
+        columns=["nombre","telefono","partidos_jugados","partidos_ganados","partidos_empatados","partidos_perdidos","puntos_totales","goles_marcados","goles_recibidos","gol_diferencia","capitan"]
+        tabla=pandas.DataFrame([equipo.like_a_frame()], columns=columns)
+        with open("csv/equipos.csv", "a") as file:
+            tabla.to_csv(file, header=file.tell()==0, index=False)
+        self.lista_equipos.append(equipo)
+    def guardar_puntajes_grupo_a_csv(self, puntajes):
+        if os.path.exists("csv/puntajes-grupo-a.csv"):
+            os.remove("csv/puntajes-grupo-a.csv")    
+        with open("csv/puntajes-grupo-a.csv", "a") as file:
+            puntajes.to_csv(file, header=file.tell()==0, index=False)
+    def guardar_puntajes_grupo_b_csv(self, puntajes):
+        if os.path.exists("csv/puntajes-grupo-b.csv"):
+            os.remove("csv/puntajes-grupo-b.csv")    
+        with open("csv/puntajes-grupo-b.csv", "a") as file:
+            puntajes.to_csv(file, header=file.tell()==0, index=False)
     def ingresar_equipo(self):
         print("Complete la siguiente información del equipo:")
         val_nombre=True
@@ -175,19 +174,55 @@ class Campeonato:
         print("Los datos del equipo a guardar son:")
         print( "Nombre: " + equ_nombre + " Teléfono: " + equ_telefono)
         print("")
-        opc1="a"
-        equipo=object
-        while opc1!="S" or opc1!="N":
-            opc1=str(input("¿Está de acuerdo?(S/N)"))
-            if opc1 == "S":
-                equipo=Equipo(equ_nombre, equ_telefono)
-                self.guardar_equipo_csv(equipo)
-                self.ingresar_jugadores(equipo)
-                break
-            elif opc1=="N":
-                break
+        equipo=Equipo(equ_nombre, equ_telefono)
+        equ_capitan=self.ingresar_capitan(equipo)
+        equipo.capitan=equ_capitan.nombre
+        self.guardar_equipo_csv(equipo)
+        self.ingresar_jugadores(equipo)
+    def ingresar_capitan(self, equipo):
+        os.system('cls')
+        print("Complete la información del capitán:")
+        val_nombre=True
+        val_apellido=True
+        val_id=True
+        val_nivel=True
+        while val_nombre:
+            jug_nombre=input("(1/4) Ingrese el nombre: ")
+            if jug_nombre.isdigit():
+                val_nombre=True 
+                print("El campo no es un nombre")
             else:
-                print("¡ERROR EN EL INGRESO!")        
+                val_nombre=False
+        while val_apellido:
+            jug_apellido=input("(2/4) Ingrese el apellido: ")
+            if jug_nombre.isdigit():
+                val_apellido=True 
+                print("El campo no es un apellido")
+            else:
+                val_apellido=False
+        while val_id:
+            jug_id=input("(3/4) Ingrese el ID: ")
+            if jug_id.isdigit():
+                val_id=True
+            else:
+                val_id=False
+        while val_nivel:
+            jug_nivel=input("(4/4) Ingrese el número del nivel: ")
+            if jug_nivel.isdigit():
+                val_nivel=False
+            else:
+                print("El campo no es un número")
+                val_nivel=True
+        os.system('cls')
+        print("")
+        print("Los datos del capitán son:")
+        print( "Nombre: " + jug_nombre + " Apellido: " + jug_apellido + " CI: " + jug_id + " Nivel: " + jug_nivel)
+        print("")
+        opc2="a"
+        jugador=object
+        jugador=Jugador(jug_nombre, jug_apellido, jug_id, jug_nivel, equipo.nombre)
+        self.guardar_jugador_csv(jugador)     
+        return jugador
     def ingresar_jugadores(self, equipo):
         opc1=True
         num_jugadores=0
@@ -200,7 +235,7 @@ class Campeonato:
                 opc1=False
         for i in range(int(num_jugadores)):
             os.system('cls')
-            print("Complete la siguiente información del jugador " + str(i) + " :")
+            print("Complete la siguiente información del jugador " + str(i+1) + " :")
             val_nombre=True
             val_apellido=True
             val_id=True
@@ -220,12 +255,11 @@ class Campeonato:
                 else:
                     val_apellido=False
             while val_id:
-                jug_id=input("(3/4) Ingrese la cédula de identificación: ")
+                jug_id=input("(3/4) Ingrese el ID: ")
                 if jug_id.isdigit():
-                    val_id=False
-                else:
-                    print("El campo no es un número")
                     val_id=True
+                else:
+                    val_id=False
             while val_nivel:
                 jug_nivel=input("(4/4) Ingrese el número del nivel: ")
                 if jug_nivel.isdigit():
@@ -238,18 +272,9 @@ class Campeonato:
             print("Los datos del jugador son:")
             print( "Nombre: " + jug_nombre + " Apellido: " + jug_apellido + " CI: " + jug_id + " Nivel: " + jug_nivel)
             print("")
-            opc2="a"
             jugador=object
-            while opc2!="S" or opc2!="N":
-                opc2=str(input("¿Está de acuerdo?(S/N)"))
-                if opc2 == "S":
-                    jugador=Jugador(jug_nombre, jug_apellido, jug_id, jug_nivel, equipo.nombre)
-                    self.guardar_jugador_csv(jugador)
-                    break
-                elif opc2=="N":
-                    pass
-                else:
-                    print("¡ERROR EN EL INGRESO!")       
+            jugador=Jugador(jug_nombre, jug_apellido, jug_id, jug_nivel, equipo.nombre)
+            self.guardar_jugador_csv(jugador)
     def guardar_jugador_csv(self, jugador):
         columns=["nombre","apellido","id","nivel","equipo"]
         tabla=pandas.DataFrame([jugador.like_a_frame()], columns=columns)
@@ -273,7 +298,7 @@ class Campeonato:
                 f"_____________________________\n"
                 f"||Nombre: {nombre}\n"
                 f"||Apellido: {apellido}\n"
-                f"||CI: {id}\n"
+                f"||ID: {id}\n"
                 f"||Nivel: {nivel}\n"
                 f"||Equipo: {equipo}\n"
                 f"||___________________________|\n"

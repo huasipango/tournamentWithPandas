@@ -1,7 +1,2 @@
-nombre,telefono,partidos_jugados,partidos_ganados,partidos_empatados,partidos_perdidos,puntos_totales,goles_marcados,goles_recibidos,gol_diferencia,id_capitan
-E,5,2,2,0,0,6,4,4,3,
-B,2,2,1,0,1,3,4,5,1,
-C,3,2,0,0,2,0,3,7,-4,
-D,4,2,0,0,2,0,0,0,-6,
-F,6,2,1,1,0,4,7,5,2,
-A,1,2,1,1,0,4,9,5,4,
+nombre,telefono,partidos_jugados,partidos_ganados,partidos_empatados,partidos_perdidos,puntos_totales,goles_marcados,goles_recibidos,gol_diferencia,capitan
+BARCELONA,1,0,0,0,0,0,0,0,0,ANTHONY
