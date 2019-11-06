@@ -1,5 +1,3 @@
-from sqlalchemy import create_engine
-from pandas.io import sql
 import csv
 import pandas
 import os
@@ -42,89 +40,118 @@ class Campeonato:
     grupo_a=object
     grupo_b=object
     cronograma=pandas.DataFrame()
+    tabla_puntuaciones=pandas.DataFrame()
 
     def __init__(self):
         pass
-    def cargar_torneo(self):
-        pass
 
-    def guardar_torneo(self):
-        pass
     def comprobar_faltan_equipos(self):
-        if len(self.lista_equipos) < 0: #CAMBIAR============================================================
+        if len(self.lista_equipos) < 6: #CAMBIAR============================================================
             print("¡ERROR! Deben existir seis equipos.")
             print("Elementos actuales: " + str(len(self.lista_equipos)))
-            return "0"
+            return True
         else:
-            return "2"
-
+            return False
     def guardar_equipo_csv(self, equipo):
         columns=["nombre","telefono","partidos_jugados","partidos_ganados","partidos_empatados","partidos_perdidos","puntos_totales","goles_marcados","goles_recibidos","gol_diferencia","id_capitan"]
         tabla=pandas.DataFrame([equipo.like_a_frame()], columns=columns)
         with open("csv/equipos.csv", "a") as file:
             tabla.to_csv(file, header=file.tell()==0, index=False)
         self.lista_equipos.append(equipo)
+    def guardar_puntajes_grupo_a_csv(self, puntajes):
+        if os.path.exists("csv/puntajes-grupo-a.csv"):
+            os.remove("csv/puntajes-grupo-a.csv")    
+        with open("csv/puntajes-grupo-a.csv", "a") as file:
+            puntajes.to_csv(file, header=file.tell()==0, index=False)
+    def guardar_puntajes_grupo_b_csv(self, puntajes):
+        if os.path.exists("csv/puntajes-grupo-b.csv"):
+            os.remove("csv/puntajes-grupo-b.csv")    
+        with open("csv/puntajes-grupo-b.csv", "a") as file:
+            puntajes.to_csv(file, header=file.tell()==0, index=False)
     def inicio(self):
         opc1="0"
-        while opc1 not in ["1","2"]:
+        while opc1 not in ["1","2","3","4"]:
             print("MENÚ")
-            print("1. Ingresar a torneo creado (Cargar información)")
-            print("2. Crear nuevo torneo (Nueva información)")
+            print("1. Crear un torneo nuevo")
+            print("2. Consultar equipos de la pasada edición")
+            print("3. Consultar jugadores de la pasada edición")
+            print("4. Consultar tabla de puntuación de la pasada edición")
             opc1=input("Seleccione la opción: ")
             os.system('cls')
             if opc1.isdigit():
                 if opc1 == "1":
-                    pass
-                elif opc1 == "2":
                     opc2="0"
-                    while opc2 not in ["1","2","3","4","5"]:
+                    while opc2 not in ["1","2","3","4","5","6"]:
                         print("MENÚ")
                         print("1. Ingresar equipo y sus jugadores")
                         print("2. Crear carnés de cancha")
                         print("3. Crear cronograma")
                         print("4. Definir resultados de partidos")
                         print("5. Consultar tabla de posiciones")
+                        print("6. Atrás")
                         opc2=input("Seleccione la opción: ")                 
                         if opc2.isdigit():
                             if opc2=="1":
                                 if len(self.lista_equipos) == 6:
                                     print("¡ERROR! No pueden haber más de seis equipos")
-                                    opc2="0"
                                 else:
                                     self.ingresar_equipo()
-                                    opc2="0"
+                                opc2="0"
                             elif opc2=="2":
-                                opc2=self.comprobar_faltan_equipos()
-                                if(opc2=="2"):#EXISTEN 6 EQUIPOS
+                                if self.comprobar_faltan_equipos()==False:#EXISTEN 6 EQUIPOS
                                     self.imprimir_carnes()
-                                    opc2="0"
+                                opc2="0"
                             elif opc2=="3":
-                                opc2=self.comprobar_faltan_equipos()
-                                if self.cronograma.empty==True:
-                                    self.crear_cronograma()
-                                print(self.cronograma.to_string(index=False))
+                                if self.comprobar_faltan_equipos()==False:
+                                    if self.cronograma.empty==True:
+                                        self.crear_cronograma()
+                                    else:
+                                        print("¡ERROR! Ya se generó un cronograma para este evento")
+                                    print(self.cronograma.to_string(index=False))
                                 opc2="0"
                             elif opc2=="4":
-                                opc2=self.comprobar_faltan_equipos()
-                                if self.cronograma.empty==True:
-                                    print("¡ERROR! Aún no ha creado el cronograma. Intente con la opción 3 e intente de nuevo.")
-                                else:
-                                    self.ingresar_resultados()
+                                if self.comprobar_faltan_equipos()==False:
+                                    if self.cronograma.empty==True:
+                                        print("¡ERROR! Aún no ha creado el cronograma. Intente con la opción 3 e intente de nuevo.")
+                                    else:
+                                        self.ingresar_resultados()
                                 opc2="0"
                             elif opc2=="5":
-
-                                opc2=self.comprobar_faltan_equipos()
+                                if self.comprobar_faltan_equipos()==False:
+                                    self.imprimir_tabla()
+                                opc2="0"
+                            elif opc2=="6":
+                                opc1="0"     
                             else:
                                 print("INGRESO INCORRECTO")
                         else:
                             opc2="0"
                             print("¡ERROR EN EL INGRESO!")
-                else:
-                    opc1=False
+                elif opc1=="2":
+                    if os.path.exists("csv/equipos.csv"):
+                        df=pandas.read_csv("csv/equipos.csv")
+                        print (df)
+                    else:
+                        print("¡ERROR! No existe historial de la edición pasada, cree una nueva con la opción 1.")
+                    opc1="0"
+                elif opc1=="3":
+                    if os.path.exists("csv/jugadores.csv"):
+                        df=pandas.read_csv("csv/jugadores.csv")
+                        print (df)
+                    else:
+                        print("¡ERROR! No existe historial de la edición pasada, cree una nueva con la opción 1.")
+                    opc1="0"
+                elif opc1=="4":
+                    if os.path.exists("csv/puntajes-grupo-a.csv") and os.path.exists("csv/puntajes-grupo-b.csv"):
+                        df1=pandas.read_csv("csv/puntajes-grupo-a.csv")
+                        df2=pandas.read_csv("csv/puntajes-grupo-b.csv")
+                        print (df1)
+                        print (df2)
+                    else:
+                        print("¡ERROR! No existe historial de la edición pasada, cree una nueva con la opción 1.")
+                    opc1="0"
             else:
                 print("¡ERROR EN EL INGRESO!")
-
-
     def ingresar_equipo(self):
         print("Complete la siguiente información del equipo:")
         val_nombre=True
@@ -241,6 +268,8 @@ class Campeonato:
                 f"_____________________________\n"
                 f"_____________________________\n"
                 f"C A R N E - D E - C A N C H A\n"
+                f"     R O B O C U P  5\n"
+                f" I N G. M E C A T R O N I C A\n"
                 f"_____________________________\n"
                 f"||Nombre: {nombre}\n"
                 f"||Apellido: {apellido}\n"
@@ -336,6 +365,26 @@ class Campeonato:
                 tabla.to_csv(file, header=file.tell()==0, index=False)
     def imprimir_tabla(self):
         df=pandas.read_csv("csv/equipos.csv")
-        df.sort_values(by=[Grupo])
+        nuevo_df=df
+        nuevo_df.drop(columns=['telefono','id_capitan'], axis=1, inplace=True)
+        nuevas_columnas=nuevo_df.columns.values
+        nuevas_columnas=["Equipo","PJ","PG","PE","PP","PT","GM","GR","GD"]
+        nuevo_df.columns=nuevas_columnas
+        tabla_grupo_a=nuevo_df[:3]
+        tabla_grupo_b=nuevo_df[3:]
+        print("GRUPO A")
+        nueva_columna=["A","A","A"]
+        tabla_grupo_a.insert(loc=0, column="Grupo", value=nueva_columna)
+        tabla_grupo_a=tabla_grupo_a.reset_index(drop=True)
+        tabla_imprimir=tabla_grupo_a.sort_values(by=['PT','GD'], ascending=False)
+        self.guardar_puntajes_grupo_a_csv(tabla_imprimir)
+        print(tabla_imprimir.to_string(index=False))
+        print("GRUPO B")
+        nueva_columna=["B","B","B"]
+        tabla_grupo_b.insert(loc=0, column="Grupo", value=nueva_columna)
+        tabla_grupo_b=tabla_grupo_b.reset_index(drop=True)
+        tabla_imprimir=tabla_grupo_b.sort_values(by=['PT','GD'], ascending=False)
+        self.guardar_puntajes_grupo_b_csv(tabla_imprimir)
+        print(tabla_imprimir.to_string(index=False))
 torneo = Campeonato()
 torneo.inicio()       
